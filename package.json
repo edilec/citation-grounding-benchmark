@@ -1,15 +1,23 @@
 {
   "name": "citation-grounding-benchmark",
-  "version": "0.0.0",
-  "description": "Benchmark answer claims against evidence and classify unsupported statements.",
+  "version": "0.1.0",
+  "description": "Benchmark human-labeled claims against local evidence and optional local grader results.",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test"
+    "lint": "node --check src/index.mjs && node --check bin/citation-grounding-benchmark.mjs && node --check test/benchmark.test.mjs && node --check test/cli.test.mjs",
+    "test": "node --test",
+    "example": "node bin/citation-grounding-benchmark.mjs --input examples/supported.json --json",
+    "example:failing": "node bin/citation-grounding-benchmark.mjs --input examples/unsupported.json --json > /dev/null; test $? -eq 1",
+    "example:incomplete": "node bin/citation-grounding-benchmark.mjs --input examples/missing-citation.json --json > /dev/null; test $? -eq 2",
+    "check": "npm run lint && npm test && npm run example && npm run example:failing && npm run example:incomplete && npm pack --dry-run"
   },
   "license": "MIT",
+  "bin": { "citation-grounding-benchmark": "./bin/citation-grounding-benchmark.mjs" },
+  "exports": { ".": "./src/index.mjs" },
+  "files": ["bin", "src", "examples", "docs", "README.md", "CHANGELOG.md", "LICENSE"],
   "repository": {
     "type": "git",
     "url": "https://github.com/edilec/citation-grounding-benchmark"
