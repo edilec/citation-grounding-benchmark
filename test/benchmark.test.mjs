@@ -205,6 +205,46 @@ test('claim rendered empty after control stripping is invalid and does not pass'
   assert.equal(report.summary.checked, 0)
 })
 
+test('a visible claim after 160 leading spaces remains valid', () => {
+  const input = fixture()
+  input.cases[0].claim = `${' '.repeat(160)}A`
+  input.evidence[0].text = 'A'
+  const report = tool.benchmark(input)
+  assert.equal(report.status, 'pass')
+  assert.equal(report.summary.checked, 1)
+  assert.deepEqual(ids(report), [])
+})
+
+test('invisible-only claim and evidence are incomplete, not supported', () => {
+  const claimOnly = fixture()
+  claimOnly.cases[0].claim = '\u200b'
+  const claimReport = tool.benchmark(claimOnly)
+  assert.equal(claimReport.status, 'incomplete')
+  assert.deepEqual(ids(claimReport), ['case-invalid'])
+  assert.equal(claimReport.summary.checked, 0)
+
+  for (const text of [' ', '\u200b']) {
+    const evidenceOnly = fixture()
+    evidenceOnly.evidence[0].text = text
+    evidenceOnly.cases[0].claim = 'A'
+    const report = tool.benchmark(evidenceOnly)
+    assert.equal(report.status, 'incomplete')
+    assert.ok(ids(report).includes('evidence-invalid'))
+    assert.ok(ids(report).includes('evidence-index-incomplete'))
+    assert.ok(!ids(report).includes('citation-orphan'))
+    assert.equal(report.results[0].deterministicOutcome, 'uncertain')
+  }
+})
+
+test('numeric review compares visible text after stripping invisible separators', () => {
+  const input = fixture()
+  input.evidence[0].text = 'The study enrolled 2\u200b0 volunteers.'
+  const report = tool.benchmark(input)
+  assert.equal(report.status, 'pass')
+  assert.deepEqual(ids(report), [])
+  assert.equal(report.results[0].deterministicOutcome, 'uncertain')
+})
+
 test('grader case limit accepts N and refuses N+1 without comparing partial results', () => {
   const input = fixture()
   const at = tool.benchmark(input, { limits: { maxCases: 1 }, graderResults: {

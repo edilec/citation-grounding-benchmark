@@ -48,7 +48,8 @@ const byCodeUnit = (a, b) => a === b ? 0 : a < b ? -1 : 1
 const identifier = (value) => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value)
 const label = (value) => value === 'supported' || value === 'unsupported' || value === 'uncertain'
 const positive = (value) => Number.isSafeInteger(value) && value > 0
-const safe = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '').slice(0, 160)
+const visible = (value) => value.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\p{Cf}]/gu, '').trim()
+const safe = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\p{Cf}]/gu, '').slice(0, 160)
 
 export function validateLimits(overrides = {}) {
   if (overrides === null || Array.isArray(overrides) || typeof overrides !== 'object') {
@@ -170,8 +171,10 @@ export function benchmark(document, {
     let evidenceComplete = true
     for (const [at, entry] of document.evidence.entries()) {
       checkpoint()
+      const text = entry !== null && typeof entry === 'object' && typeof entry.text === 'string'
+        ? visible(entry.text) : ''
       if (entry === null || typeof entry !== 'object' || Array.isArray(entry)
-        || !identifier(entry.id) || typeof entry.text !== 'string' || entry.text.length === 0) {
+        || !identifier(entry.id) || text.length === 0) {
         evidenceComplete = false
         add('evidence-invalid', 'An evidence id or text is unusable, so the evidence index is incomplete.', `/evidence/${at}`)
         continue
@@ -181,7 +184,7 @@ export function benchmark(document, {
         add('evidence-duplicate', 'An evidence id is declared more than once, so its content is ambiguous.', `/evidence/${at}`, entry.id)
         continue
       }
-      evidence.set(entry.id, entry.text)
+      evidence.set(entry.id, text)
     }
 
     const graders = new Map()
@@ -220,8 +223,10 @@ export function benchmark(document, {
     for (const [at, item] of document.cases.entries()) {
       checkpoint()
       const pointer = `/cases/${at}`
+      const claim = item !== null && typeof item === 'object' && typeof item.claim === 'string'
+        ? visible(item.claim) : ''
       if (item === null || typeof item !== 'object' || Array.isArray(item)
-        || !identifier(item.id) || typeof item.claim !== 'string' || safe(item.claim).trim() === '' || !label(item.humanLabel)) {
+        || !identifier(item.id) || claim.length === 0 || !label(item.humanLabel)) {
         add('case-invalid', 'Case id, claim or human label is unusable.', pointer)
         continue
       }
@@ -246,7 +251,7 @@ export function benchmark(document, {
         }
       }
       if (citedTexts !== null) {
-        const claimed = numbersIn(item.claim)
+        const claimed = numbersIn(claim)
         const cited = new Set(citedTexts.flatMap(numbersIn))
         if (claimed.length > 0 && cited.size > 0 && claimed.some((value) => !cited.has(value))) {
           result.deterministicOutcome = 'unsupported'
