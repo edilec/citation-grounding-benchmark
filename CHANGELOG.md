@@ -4,6 +4,8 @@
 
 - Validated unbounded visible claim and evidence text before comparison, so
   invisible-only input is incomplete and a long but visible claim stays valid.
+- Refused duplicate JSON object keys in both human-labeled fixtures and
+  optional local grader results.
 
 ## 0.1.0
 

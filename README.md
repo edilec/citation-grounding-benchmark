@@ -28,7 +28,9 @@ One UTF-8 JSON file contains a version, exported evidence text and human-labeled
 cases. IDs are ASCII letters/digits followed by letters/digits, `.`, `_`, `:`
 or `-`. Each case has at least one citation ID. The evidence text, not a URL or
 file path, is the entire local source. A separate optional grader file has the
-same version and one `caseId`/`label` result per case.
+same version and one `caseId`/`label` result per case. Both JSON files refuse
+duplicate decoded object keys as incomplete, because a last-wins parse could
+erase an earlier human or grader label.
 
 ```json
 {

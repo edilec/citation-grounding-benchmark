@@ -2,6 +2,7 @@
 import { readFile, stat } from 'node:fs/promises'
 import { basename } from 'node:path'
 import { benchmark, exitCodeFor, oneFinding, renderReport, validateLimits } from '../src/index.mjs'
+import { hasDuplicateJsonKey } from '../src/json-keys.mjs'
 
 const HELP = `citation-grounding-benchmark
 Evaluate a human-labeled local claim/evidence fixture. An optional grader is a
@@ -60,7 +61,14 @@ async function localJson(path, maxBytes, tooLargeRule, unreadableRule, invalidRu
     bytes = await readFile(path)
   } catch { return { report: oneFinding(unreadableRule, 'Local input could not be read as a regular file.', file) } }
   if (bytes.length > maxBytes) return { report: oneFinding(tooLargeRule, `Input exceeds the limit of ${maxBytes} bytes.`, file) }
-  try { return { value: JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) } }
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    const value = JSON.parse(text)
+    if (hasDuplicateJsonKey(text)) {
+      return { report: oneFinding(invalidRule, 'JSON object has a duplicate key; earlier evidence was overwritten.', file) }
+    }
+    return { value }
+  }
   catch { return { report: oneFinding(invalidRule, 'Local input could not be decoded as UTF-8 JSON.', file) } }
 }
 

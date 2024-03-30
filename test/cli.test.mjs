@@ -133,3 +133,40 @@ test('untrusted option text does not write bidi controls to diagnostics', async 
   assert.match(result.stderr, /Unknown option/)
   assert.ok(!result.stderr.includes('\u202e'))
 })
+
+test('duplicate case JSON keys cannot erase an earlier human label', async (t) => {
+  const ordinary = JSON.stringify(CASES)
+  const duplicate = ordinary.replace('"humanLabel":"supported"',
+    '"humanLabel":"unsupported","humanLabel":"supported"')
+  assert.notEqual(duplicate, ordinary)
+  const { input } = await fixture(t, duplicate)
+  const result = await run(['--input', input, '--json'])
+  assert.equal(result.code, 2)
+  const report = JSON.parse(result.stdout)
+  assert.equal(report.status, 'incomplete')
+  assert.deepEqual(report.findings.map((finding) => finding.ruleId), ['input-invalid'])
+})
+
+test('duplicate local grader keys are incomplete, not a last-wins pass', async (t) => {
+  const ordinary = JSON.stringify(GRADER)
+  const duplicate = ordinary.replace('"label":"unsupported"',
+    '"label":"unsupported","label":"supported"')
+  assert.notEqual(duplicate, ordinary)
+  const { input, graderFile } = await fixture(t, CASES, duplicate)
+  const result = await run(['--input', input, '--grader', graderFile, '--json'])
+  assert.equal(result.code, 2)
+  const report = JSON.parse(result.stdout)
+  assert.equal(report.status, 'incomplete')
+  assert.deepEqual(report.findings.map((finding) => finding.ruleId), ['grader-invalid'])
+})
+
+test('key-like text inside a claim and repeated names in separate records remain valid', async (t) => {
+  const text = '{"humanLabel":"unsupported","humanLabel":"supported"}'
+  const input = { schemaVersion: '1', evidence: [
+    { id: 'e1', text }, { id: 'e2', text: 'Another record.' },
+  ], cases: [{ id: 'case-1', claim: text, citationIds: ['e1'], humanLabel: 'supported' }] }
+  const { input: file } = await fixture(t, input)
+  const result = await run(['--input', file, '--json'])
+  assert.equal(result.code, 0)
+  assert.equal(JSON.parse(result.stdout).status, 'pass')
+})

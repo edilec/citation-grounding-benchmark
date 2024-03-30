@@ -7,7 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "lint": "node --check src/index.mjs && node --check bin/citation-grounding-benchmark.mjs && node --check test/benchmark.test.mjs && node --check test/cli.test.mjs",
+    "lint": "node --check src/index.mjs && node --check src/json-keys.mjs && node --check bin/citation-grounding-benchmark.mjs && node --check test/benchmark.test.mjs && node --check test/cli.test.mjs",
     "test": "node --test",
     "example": "node bin/citation-grounding-benchmark.mjs --input examples/supported.json --json",
     "example:failing": "node bin/citation-grounding-benchmark.mjs --input examples/unsupported.json --json > /dev/null; test $? -eq 1",
