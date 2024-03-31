@@ -245,6 +245,28 @@ test('numeric review compares visible text after stripping invisible separators'
   assert.equal(report.results[0].deterministicOutcome, 'uncertain')
 })
 
+test('default-ignorable marks alone cannot make claim or evidence complete', () => {
+  const control = fixture()
+  control.cases[0].claim = `A\u034f`
+  control.evidence[0].text = 'A'
+  assert.equal(tool.benchmark(control).status, 'pass')
+
+  for (const hidden of ['\u034f', '\ufe0f']) {
+    const claimOnly = fixture()
+    claimOnly.cases[0].claim = hidden
+    const claimReport = tool.benchmark(claimOnly)
+    assert.equal(claimReport.status, 'incomplete')
+    assert.deepEqual(ids(claimReport), ['case-invalid'])
+
+    const evidenceOnly = fixture()
+    evidenceOnly.evidence[0].text = hidden
+    const evidenceReport = tool.benchmark(evidenceOnly)
+    assert.equal(evidenceReport.status, 'incomplete')
+    assert.ok(ids(evidenceReport).includes('evidence-invalid'))
+    assert.ok(ids(evidenceReport).includes('evidence-index-incomplete'))
+  }
+})
+
 test('grader case limit accepts N and refuses N+1 without comparing partial results', () => {
   const input = fixture()
   const at = tool.benchmark(input, { limits: { maxCases: 1 }, graderResults: {

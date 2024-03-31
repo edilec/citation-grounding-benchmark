@@ -4,6 +4,8 @@
 
 - Validated unbounded visible claim and evidence text before comparison, so
   invisible-only input is incomplete and a long but visible claim stays valid.
+- Included Unicode default-ignorable marks outside the format category in
+  visible-text validation.
 - Refused duplicate JSON object keys in both human-labeled fixtures and
   optional local grader results.
 

@@ -47,7 +47,8 @@ Human labels are `supported`, `unsupported` or `uncertain`. They are the
 **fixture's** ground truth, not independently verified truth. `uncertain`
 prevents a clean result. The numerical check extracts number-like tokens from
 the claim and cited text. A claim or evidence entry must have visible text
-after control, format and surrounding whitespace characters are removed;
+after control, format, default-ignorable and surrounding whitespace
+characters are removed;
 this check does not use the report's 160-character message bound. Numerical
 checks use that same visible form. When both contain numbers and a claimed number is
 absent from cited numbers, `deterministicOutcome` is `unsupported`; otherwise it

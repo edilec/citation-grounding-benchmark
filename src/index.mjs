@@ -48,8 +48,9 @@ const byCodeUnit = (a, b) => a === b ? 0 : a < b ? -1 : 1
 const identifier = (value) => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value)
 const label = (value) => value === 'supported' || value === 'unsupported' || value === 'uncertain'
 const positive = (value) => Number.isSafeInteger(value) && value > 0
-const visible = (value) => value.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\p{Cf}]/gu, '').trim()
-const safe = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\p{Cf}]/gu, '').slice(0, 160)
+const invisible = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}]/gu
+const visible = (value) => value.replace(invisible, '').trim()
+const safe = (value) => String(value ?? '').replace(invisible, '').slice(0, 160)
 
 export function validateLimits(overrides = {}) {
   if (overrides === null || Array.isArray(overrides) || typeof overrides !== 'object') {
