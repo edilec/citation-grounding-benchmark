@@ -8,6 +8,8 @@
   visible-text validation.
 - Refused duplicate JSON object keys in both human-labeled fixtures and
   optional local grader results.
+- Refused local grader results for undeclared cases instead of silently
+  dropping them from an otherwise clean comparison.
 
 ## 0.1.0
 

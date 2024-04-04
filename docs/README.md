@@ -14,8 +14,10 @@ The optional grader JSON has shape:
 ```
 
 Each result is a **previously obtained, local** grader output. The CLI has no
-provider configuration and never generates such a result. Missing, malformed
-or duplicated result entries make comparison incomplete. Disagreement is with
+provider configuration and never generates such a result. Missing, malformed,
+duplicated or undeclared-case result entries make comparison incomplete. An
+ambiguous case-ID index also prevents a positive extra-row assertion.
+Disagreement is with
 the supplied human label; the grader does not become ground truth.
 
 For machine consumers, inspect `status` first. `results[].humanLabel` is the

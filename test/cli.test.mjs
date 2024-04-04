@@ -170,3 +170,17 @@ test('key-like text inside a claim and repeated names in separate records remain
   assert.equal(result.code, 0)
   assert.equal(JSON.parse(result.stdout).status, 'pass')
 })
+
+test('CLI refuses a local grader result for an undeclared case', async (t) => {
+  const grader = { schemaVersion: '1', results: [
+    { caseId: 'case-1', label: 'supported' },
+    { caseId: 'ghost', label: 'supported' },
+  ] }
+  const { input, graderFile } = await fixture(t, CASES, grader)
+  const result = await run(['--input', input, '--grader', graderFile, '--json'])
+  assert.equal(result.code, 2)
+  const report = JSON.parse(result.stdout)
+  assert.equal(report.status, 'incomplete')
+  assert.ok(report.findings.some((finding) => finding.ruleId === 'grader-invalid'
+    && finding.location.file === 'grader.json'))
+})

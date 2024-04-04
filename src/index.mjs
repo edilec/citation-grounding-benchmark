@@ -188,8 +188,18 @@ export function benchmark(document, {
       evidence.set(entry.id, text)
     }
 
+    const declaredCaseIds = new Set()
+    let caseIdentityComplete = true
+    for (const item of document.cases) {
+      checkpoint()
+      if (item === null || typeof item !== 'object' || Array.isArray(item)
+        || !identifier(item.id) || declaredCaseIds.has(item.id)) {
+        caseIdentityComplete = false
+      } else declaredCaseIds.add(item.id)
+    }
+
     const graders = new Map()
-    let graderComplete = true
+    let graderComplete = caseIdentityComplete
     if (graderResults !== null) {
       const graderDepth = depthProblem(graderResults, limits.maxDepth, checkpoint)
       if (graderDepth === 'depth-limit') {
@@ -213,6 +223,11 @@ export function benchmark(document, {
           if (graders.has(item.caseId)) {
             graderComplete = false
             add('grader-duplicate', 'A case has more than one local grader result.', `/results/${at}`, item.caseId, graderFile)
+            continue
+          }
+          if (caseIdentityComplete && !declaredCaseIds.has(item.caseId)) {
+            graderComplete = false
+            add('grader-invalid', 'Local grader result names no declared case.', `/results/${at}`, item.caseId, graderFile)
             continue
           }
           graders.set(item.caseId, item.label)

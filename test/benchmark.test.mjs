@@ -305,6 +305,38 @@ test('a complete grader index with a missing result is incomplete, not an implic
   assert.equal(report.results[0].graderOutcome, undefined)
 })
 
+test('an extra grader result for an undeclared case makes comparison incomplete', () => {
+  const control = tool.benchmark(fixture(), { graderResults: { schemaVersion: '1', results: [
+    { caseId: 'case-1', label: 'supported' },
+  ] } })
+  assert.equal(control.status, 'pass')
+  assert.deepEqual(ids(control), [])
+  assert.equal(control.results[0].graderOutcome, 'supported')
+
+  const report = tool.benchmark(fixture(), { graderResults: { schemaVersion: '1', results: [
+    { caseId: 'case-1', label: 'unsupported' },
+    { caseId: 'ghost', label: 'supported' },
+  ] } })
+  assert.equal(report.status, 'incomplete')
+  assert.ok(ids(report).includes('grader-invalid'))
+  assert.ok(ids(report).includes('grader-index-incomplete'))
+  assert.ok(!ids(report).includes('grader-disagreement'))
+  assert.equal(report.results[0].graderOutcome, undefined)
+})
+
+test('an incomplete case ID index cannot positively classify a grader row as extra', () => {
+  const input = fixture()
+  input.cases.push({ ...input.cases[0], id: null })
+  const report = tool.benchmark(input, { graderResults: { schemaVersion: '1', results: [
+    { caseId: 'ghost', label: 'supported' },
+  ] } })
+  assert.equal(report.status, 'incomplete')
+  assert.ok(ids(report).includes('case-invalid'))
+  assert.ok(ids(report).includes('grader-index-incomplete'))
+  assert.ok(!ids(report).includes('grader-invalid'))
+  assert.ok(!ids(report).includes('grader-disagreement'))
+})
+
 test('duplicate evidence and grader ids refuse ambiguous comparison', () => {
   const input = fixture()
   input.evidence.push({ id: 'e1', text: 'The study enrolled 25 volunteers.' })
