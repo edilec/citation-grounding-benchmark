@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "1",
+  "evidence": [{ "id": "e1", "text": "The study enrolled 20 volunteers." }],
+  "cases": [{ "id": "case-1", "claim": "The study enrolled 20 volunteers.", "citationIds": ["absent"], "humanLabel": "supported" }]
+}
