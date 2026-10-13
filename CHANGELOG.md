@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 — 2026-10-14
 
 - Validated unbounded visible claim and evidence text before comparison, so
   invisible-only input is incomplete and a long but visible claim stays valid.
@@ -11,7 +11,7 @@
 - Refused local grader results for undeclared cases instead of silently
   dropping them from an otherwise clean comparison.
 
-## 0.1.0
+Initial implementation:
 
 - Added a local human-labeled claim/evidence benchmark with separate numerical
   and optional locally supplied grader signals.
